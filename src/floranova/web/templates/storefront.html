@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="/static/css/store.css">
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<header class="store-header">
+    <div class="header-container">
+        <a href="/" class="brand-wrap">
+            <span class="brand-icon">🌸</span>
+            <div>
+                <div class="brand-name">{{ settings.APP_NAME }}</div>
+                <div class="brand-tag">بوتیک گل و آتلیه دیزاین گیاهی</div>
+            </div>
+        </a>
+
+        <div class="header-actions">
+            <form class="track-form-inline" onsubmit="event.preventDefault(); const code = document.getElementById('headerTrackInput').value.trim(); if(code) window.location.href='/track/'+code;">
+                <input type="text" id="headerTrackInput" class="track-input" placeholder="کد رهگیری (FN-...)" />
+                <button type="submit" class="btn-track">پیگیری</button>
+            </form>
+            <a href="/admin" class="btn-admin-link">
+                <span>⚙️</span> پنل مدیریت و کارگاه
+            </a>
+        </div>
+    </div>
+</header>
+
+<!-- Hero Section -->
+<section class="hero-banner">
+    <div class="hero-content">
+        <div class="hero-badge">هنر گلآرایی ژورنالی و ارسال VIP در تهران</div>
+        <h1 class="hero-title">لحظات به یادماندنی با رایحه گلهای تازه</h1>
+        <p class="hero-subtitle">
+            سفارش آنلاین انواع دستهگل، باکسهای لاکچری و سبدهای تشریفاتی با امکان انتخاب زمان دقیق ارسال و پیام کارت اختصاصی
+        </p>
+        <div class="hero-features">
+            <div>🌿 تضمین تازگی و شادابی گلها</div>
+            <div>🎁 تحویل سورپرایز با سفیر اختصاصی</div>
+            <div>✍️ نگارش خطی کارت پستال نفیس</div>
+            <div>🕒 زمانبندی دقیق در بازههای مشخص</div>
+        </div>
+    </div>
+</section>
+
+<!-- Category Pills -->
+<nav class="category-filter-wrap">
+    <button class="cat-pill active" onclick="filterCategory('')">همه چیدمانها</button>
+    {% for cat in categories %}
+    <button class="cat-pill" onclick="filterCategory('{{ cat.slug }}')">{{ cat.name_fa }}</button>
+    {% endfor %}
+</nav>
+
+<!-- Main Products Section -->
+<main class="catalog-section">
+    <div class="catalog-grid" id="productsGrid">
+        {% for prod in products %}
+        <article class="flower-card" data-category="{{ prod.category.slug if prod.category else '' }}">
+            <div class="card-img-wrap">
+                <img src="{{ prod.primary_image }}" alt="{{ prod.title_fa }}" class="card-img" loading="lazy" />
+                {% if prod.is_featured %}
+                <span class="card-badge-floating">منتخب دیزاینر</span>
+                {% endif %}
+                <span class="card-stem-badge">{{ prod.stem_count }} شاخه طبیعی</span>
+            </div>
+            <div class="card-body">
+                <h2 class="card-title">{{ prod.title_fa }}</h2>
+                <div class="card-stems-desc">
+                    {% for flower in prod.flower_types %}
+                    <span class="stem-tag">{{ flower }}</span>
+                    {% endfor %}
+                </div>
+                <div class="card-footer-box">
+                    <div class="price-box">
+                        {% if prod.discount_price %}
+                        <span style="text-decoration: line-through; font-size: 0.8rem; color: #94a3b8;">
+                            {{ prod.price | format_toman }}
+                        </span>
+                        <span class="price-val">{{ prod.discount_price | format_toman }}</span>
+                        {% else %}
+                        <span class="price-val">{{ prod.price | format_toman }}</span>
+                        {% endif %}
+                    </div>
+                    <button class="btn-customize-order" onclick='openCustomizer({{ {
+                        "id": prod.id,
+                        "title_fa": prod.title_fa,
+                        "primary_image": prod.primary_image,
+                        "description_fa": prod.description_fa,
+                        "price": prod.price,
+                        "discount_price": prod.discount_price,
+                        "stem_count": prod.stem_count
+                    } | tojson }})'>
+                        سفارش و شخصیسازی
+                    </button>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+</main>
+
+<!-- Modal Customizer & Checkout -->
+<div class="modal-overlay" id="customizerModal">
+    <div class="modal-dialog">
+        <button class="modal-close" onclick="closeCustomizer()">✕</button>
+
+        <div class="modal-grid">
+            <!-- Left Column: Product Showcase -->
+            <div>
+                <img id="modalImg" src="" alt="پیشنمایش گل" class="modal-preview-img" />
+                <h3 id="modalTitle" style="font-size: 1.3rem; margin-top: 1rem; color: var(--primary);"></h3>
+                <p id="modalStems" style="font-size: 0.85rem; color: #64748b; font-weight: 600; margin-top: 0.25rem;"></p>
+                <p id="modalDesc" style="font-size: 0.88rem; color: #334155; margin-top: 0.75rem; line-height: 1.6;"></p>
+
+                <!-- Addons Section -->
+                <div style="margin-top: 1.5rem;">
+                    <label class="form-label">افزودن هدایای جانبی:</label>
+                    <div class="addon-picker-grid">
+                        {% for addon in addons %}
+                        <div class="addon-card-check" onclick="toggleAddon({{ addon.id }}, '{{ addon.title_fa }}', {{ addon.price }}, this)">
+                            <img src="{{ addon.image_url }}" alt="{{ addon.title_fa }}" />
+                            <span class="addon-title-txt">{{ addon.title_fa }}</span>
+                            <span class="addon-price-txt">{{ addon.price | format_toman }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Price Summary -->
+                <div class="price-summary-card">
+                    <div class="summary-row">
+                        <span>بهای چیدمان گل:</span>
+                        <span id="summaryBasePrice">۰ تومان</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>آیتمهای جانبی:</span>
+                        <span id="summaryAddonsPrice">۰ تومان</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>هزینه ارسال اختصاصی:</span>
+                        <span id="summaryDeliveryFee">۷۵,۰۰۰ تومان</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>مبلغ نهایی سفارش:</span>
+                        <span id="summaryFinalTotal">۰ تومان</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Checkout Form -->
+            <div>
+                <form id="orderForm">
+                    <h3 style="font-size: 1.15rem; color: var(--primary); margin-bottom: 1.25rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">
+                        مشخصات تحویل و متن یادداشت
+                    </h3>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label">نام سفارشدهنده:</label>
+                            <input type="text" id="buyerName" class="form-input" required placeholder="مثلاً: آرش پیروز" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">موبایل سفارشدهنده:</label>
+                            <input type="tel" id="buyerPhone" class="form-input" required pattern="^09[0-9]{9}$" placeholder="0912..." />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">ایمیل (اختیاری جهت دریافت فاکتور):</label>
+                        <input type="email" id="buyerEmail" class="form-input" placeholder="info@example.com" />
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label">نام تحویلگیرنده:</label>
+                            <input type="text" id="recipientName" class="form-input" required placeholder="مثلاً: سارا راد" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">موبایل گیرنده:</label>
+                            <input type="tel" id="recipientPhone" class="form-input" required pattern="^09[0-9]{9}$" placeholder="09..." />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">آدرس کامل محل تحویل در تهران:</label>
+                        <textarea id="recipientAddress" class="form-textarea" rows="2" required placeholder="خیابان، کوچه، پلاک، واحد"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">منطقه شهرداری / محله:</label>
+                        <input type="text" id="districtZone" class="form-input" placeholder="مثلاً: منطقه ۱ (الهیه)" />
+                    </div>
+
+                    <!-- Surprise Gift Checkbox -->
+                    <div class="form-group">
+                        <label class="surprise-check-box">
+                            <input type="checkbox" id="isSurprise" />
+                            <span><strong>ارسال سورپرایز:</strong> سفیر قبل از حضور در محل با گیرنده تماس تلفنی نگیرد</span>
+                        </label>
+                    </div>
+
+                    <!-- Card Message & Ribbon -->
+                    <div class="form-group">
+                        <label class="form-label">متن کارت پستال (دستنویس با خط خوش):</label>
+                        <textarea id="cardMessage" class="form-textarea" rows="2" placeholder="متن تبریک، احساسی یا دلخواه شما..."></textarea>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label">امضای کارت (فرستنده):</label>
+                            <input type="text" id="cardSender" class="form-input" placeholder="از طرف..." />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">متن چاپ روبان (اختیاری):</label>
+                            <input type="text" id="ribbonText" class="form-input" placeholder="تولدت مبارک عزیزترینم" />
+                        </div>
+                    </div>
+
+                    <!-- Scheduling -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label">روز تحویل:</label>
+                            <select id="deliveryDateSelect" class="form-select" required>
+                                {% for d in delivery_dates %}
+                                <option value="{{ d.date_jalali }}">{{ d.display_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">بازه زمانی تحویل:</label>
+                            <select id="timeWindowSelect" class="form-select" required>
+                                <option value="">انتخاب بازه...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">توضیحات ویژه تحویل:</label>
+                        <input type="text" id="deliveryNotes" class="form-input" placeholder="مثلاً: تحویل به لابیمن برج" />
+                    </div>
+
+                    <button type="submit" id="btnSubmitOrder" class="btn-submit-order">
+                        ثبت سفارش و صدور آنلاین شناسنامه
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="store-footer">
+    <div class="footer-container">
+        <div>
+            <h3 style="color: var(--primary); margin-bottom: 0.5rem; font-size: 1.1rem;">بوتیک گل {{ settings.APP_NAME }}</h3>
+            <p>{{ settings.STORE_ADDRESS_FA }}</p>
+            <p>تلفن هماهنگی و پشتیبانی کارگاه: {{ settings.STORE_PHONE }}</p>
+        </div>
+        <div>
+            <h4 style="color: var(--primary); margin-bottom: 0.5rem;">ساعت کاری آتلیه دیزاین</h4>
+            <p>همهروزه از ۸:۰۰ صبح الی ۲۱:۰۰ شب</p>
+            <p>پشتیبانی اینستاگرام: {{ settings.INSTAGRAM_HANDLE }}</p>
+        </div>
+    </div>
+</footer>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/store.js"></script>
+<script>
+function filterCategory(catSlug) {
+    document.querySelectorAll(".cat-pill").forEach(p => p.classList.remove("active"));
+    event.target.classList.add("active");
+    
+    document.querySelectorAll(".flower-card").forEach(card => {
+        if (!catSlug || card.getAttribute("data-category") === catSlug) {
+            card.style.display = "flex";
+        } else {
+            card.style.display = "none";
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="/static/css/store.css">
+<style>
+.track-page-container {
+    max-width: 800px;
+    margin: 3rem auto 5rem;
+    padding: 0 1.5rem;
+}
+
+.track-card {
+    background: white;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-soft);
+    padding: 2.5rem 2rem;
+}
+
+.timeline {
+    position: relative;
+    margin: 2.5rem 0;
+    padding-right: 2rem;
+    border-right: 2px solid #e2e8f0;
+}
+
+.timeline-step {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.timeline-step:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-dot {
+    position: absolute;
+    right: -2.6rem;
+    top: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #cbd5e1;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px #cbd5e1;
+}
+
+.timeline-step.completed .timeline-dot {
+    background: #10b981;
+    box-shadow: 0 0 0 2px #10b981;
+}
+
+.timeline-step.active .timeline-dot {
+    background: #c48b71;
+    box-shadow: 0 0 0 3px rgba(196, 139, 113, 0.3);
+}
+
+.step-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.step-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+}
+
+.qc-photo-box {
+    margin-top: 1.5rem;
+    padding: 1.25rem;
+    background: #f8fafc;
+    border-radius: var(--radius-sm);
+    border: 1px solid #e2e8f0;
+    text-align: center;
+}
+
+.qc-photo-box img {
+    max-width: 100%;
+    max-height: 380px;
+    border-radius: 8px;
+    object-fit: cover;
+    margin-top: 0.75rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="store-header">
+    <div class="header-container">
+        <a href="/" class="brand-wrap">
+            <span class="brand-icon">🌸</span>
+            <div>
+                <div class="brand-name">{{ settings.APP_NAME }}</div>
+                <div class="brand-tag">بوتیک گل و آتلیه دیزاین گیاهی</div>
+            </div>
+        </a>
+        <div>
+            <a href="/" class="btn-track" style="text-decoration:none; display:inline-block;">بازگشت به فروشگاه</a>
+        </div>
+    </div>
+</header>
+
+<div class="track-page-container">
+    {% if not order %}
+    <div class="track-card" style="text-align: center;">
+        <h2 style="color: #e11d48; margin-bottom: 1rem;">سفارش یافت نشد</h2>
+        <p style="color: #64748b;">سفارشی با شناسه رهگیری «{{ tracking_code }}» در دیتابیس ثبت نشده است.</p>
+        <div style="margin-top: 2rem;">
+            <a href="/" class="btn-customize-order" style="text-decoration:none;">مشاهده کاتالوگ گلها</a>
+        </div>
+    </div>
+    {% else %}
+    <div class="track-card">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; border-bottom: 1px solid #e2e8f0; padding-bottom: 1.25rem;">
+            <div>
+                <span style="font-size: 0.85rem; color: #64748b;">کد اختصاصی رهگیری:</span>
+                <h1 style="font-size: 1.75rem; color: var(--primary); font-weight: 800; letter-spacing: 1px; direction: ltr; display: inline-block;">
+                    {{ order.tracking_code }}
+                </h1>
+            </div>
+            <div>
+                <span class="card-badge-floating" style="position: static; font-size: 0.85rem;">
+                    {{ order.status.value }}
+                </span>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1.5rem; background: #f8fafc; padding: 1.25rem; border-radius: 8px;">
+            <div>
+                <div style="font-size: 0.8rem; color: #64748b;">گیرنده:</div>
+                <div style="font-weight: 700;">{{ order.recipient_name }}</div>
+            </div>
+            <div>
+                <div style="font-size: 0.8rem; color: #64748b;">تاریخ و بازه ارسال:</div>
+                <div style="font-weight: 700;">{{ order.delivery_date_jalali }} ({{ order.delivery_time_window }})</div>
+            </div>
+            <div>
+                <div style="font-size: 0.8rem; color: #64748b;">نوع ارسال:</div>
+                <div style="font-weight: 700;">
+                    {% if order.is_surprise %}
+                    🎁 تحویل سورپرایز تشریفاتی
+                    {% else %}
+                    ارسال استاندارد با هماهنگی
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Card & Ribbon Section -->
+        {% if order.greeting_card_message or order.ribbon_text %}
+        <div style="margin-top: 1.5rem; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 1rem; background: #fffcf7;">
+            {% if order.greeting_card_message %}
+            <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 0.25rem;">متن نگارش شده روی کارت پستال:</div>
+            <div style="font-style: italic; color: #1e3a2b; font-size: 1rem; font-weight: 500;">
+                «{{ order.greeting_card_message }}»
+            </div>
+            {% if order.greeting_card_sender %}
+            <div style="text-align: left; font-size: 0.85rem; color: #64748b; margin-top: 0.25rem;">
+                — {{ order.greeting_card_sender }}
+            </div>
+            {% endif %}
+            {% endif %}
+
+            {% if order.ribbon_text %}
+            <div style="margin-top: 0.75rem; font-size: 0.85rem; color: #64748b;">
+                متن روبان: <strong>{{ order.ribbon_text }}</strong>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Interactive Progress Timeline -->
+        <h3 style="margin-top: 2.5rem; font-size: 1.1rem; color: var(--primary);">مراحل پردازش در آتلیه:</h3>
+        <div class="timeline">
+            {% for event in order.status_history %}
+            <div class="timeline-step completed">
+                <div class="timeline-dot"></div>
+                <div class="step-title">{{ event.to_status_fa or event.to_status }}</div>
+                <div class="step-meta">
+                    ثبت شده توسط: {{ event.changed_by }} | {{ event.timestamp_jalali or event.timestamp_iso }}
+                </div>
+                {% if event.note %}
+                <div style="font-size: 0.82rem; color: #334155; margin-top: 0.2rem;">{{ event.note }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- QC Photo Showcase -->
+        {% if order.arrangement_photo_url %}
+        <div class="qc-photo-box">
+            <h4 style="color: var(--primary);">📷 عکس تاییدیه کنترل کیفی پیش از ارسال</h4>
+            <p style="font-size: 0.82rem; color: #64748b;">این تصویر پس از تکمیل گلآرایی توسط دیزاینر در آتلیه ثبت شده است:</p>
+            <img src="{{ order.arrangement_photo_url }}" alt="تصویر گلآرایی" />
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

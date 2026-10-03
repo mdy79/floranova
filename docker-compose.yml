@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    container_name: floranova_app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=sqlite+aiosqlite:///./data/floranova.db
+      - SECRET_KEY=generate_a_secure_random_key_here_for_production
+    volumes:
+      - floranova_data:/app/data
+
+volumes:
+  floranova_data:

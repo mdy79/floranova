@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="/static/css/admin.css">
+{% endblock %}
+
+{% block content %}
+<!-- Top Navigation Bar -->
+<header class="admin-topnav">
+    <div class="topnav-inner">
+        <div class="topnav-brand">
+            <span style="font-size: 1.4rem;">🌿</span>
+            <div class="topnav-title">{{ settings.APP_NAME }} — پنل عملیات و کارگاه گلآرایی</div>
+            <div class="status-indicator-badge">
+                <span class="pulse-dot"></span>
+                <span>اتصال کارگاه: برخط</span>
+            </div>
+        </div>
+
+        <div class="topnav-meta">
+            <span class="live-clock-badge">امروز: {{ today_jalali }}</span>
+            <a href="/" class="btn-ghost">مشاهده فروشگاه</a>
+        </div>
+    </div>
+</header>
+
+<main class="admin-main">
+    <!-- KPI Header Summary -->
+    <section class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-label">فروش کل تأیید شده</div>
+            <div class="kpi-value">
+                <span id="statRevenue">۰</span>
+                <span class="kpi-unit">تومان</span>
+            </div>
+            <div class="kpi-subtext">کل سفارشهای فعال و تحویل شده</div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-label">سفارشهای موعد امروز</div>
+            <div class="kpi-value">
+                <span id="statToday">۰</span>
+                <span class="kpi-unit">سفارش</span>
+            </div>
+            <div class="kpi-subtext">توزیع در ۳ بازه صبح، عصر، شب</div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-label">در حال گلآرایی در آتلیه</div>
+            <div class="kpi-value">
+                <span id="statArranging">۰</span>
+                <span class="kpi-unit">چیدمان</span>
+            </div>
+            <div class="kpi-subtext">میز کار دیزاینرها</div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-label">موجودی شاخههای شاداب سردخانه</div>
+            <div class="kpi-value">
+                <span id="statStems">۰</span>
+                <span class="kpi-unit">شاخه</span>
+            </div>
+            <div class="kpi-subtext">بچهای درجه یک ورودی</div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-label">ریسک افت کیفیت و ماندگاری</div>
+            <div class="kpi-value">
+                <span id="statSpoilage">۰%</span>
+            </div>
+            <div class="kpi-subtext">نیاز به چرخش سریع یا فروش ویژه</div>
+        </div>
+    </section>
+
+    <!-- Operational Tabs & Control Bar -->
+    <section class="control-bar">
+        <div class="tabs-group">
+            <button class="tab-btn active" id="tabBtnOrders" onclick="switchTab('orders')">📋 مدیریت سفارشها</button>
+            <button class="tab-btn" id="tabBtnInventory" onclick="switchTab('inventory')">❄️ انبار سردخانه و تازگی شاخهها</button>
+        </div>
+
+        <div class="filter-group" id="ordersFilterGroup">
+            <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">فیلتر وضعیت:</label>
+            <select id="filterStatus" class="filter-select" onchange="fetchOrders()">
+                <option value="">همه وضعیتها</option>
+                <option value="CONFIRMED">تایید شده (نیازمند شروع گلآرایی)</option>
+                <option value="ARRANGING">در حال گلآرایی در آتلیه</option>
+                <option value="QUALITY_APPROVED">تایید کیفی (آماده تحویل به سفیر)</option>
+                <option value="OUT_FOR_DELIVERY">ارسال با سفیر اختصاصی</option>
+                <option value="DELIVERED">تحویل شده به گیرنده</option>
+                <option value="CANCELLED">لغو شده</option>
+            </select>
+            <button class="btn-ghost" onclick="fetchOrders(); fetchStats();">بروزرسانی</button>
+        </div>
+    </section>
+
+    <!-- Pane 1: Orders Table -->
+    <div id="paneOrders" class="admin-tab-pane">
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>کد رهگیری</th>
+                            <th>وضعیت جاری</th>
+                            <th>گیرنده</th>
+                            <th>خریدار</th>
+                            <th>زمان تحویل</th>
+                            <th>مبلغ کل</th>
+                            <th>اقدامات عملیاتی</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 2rem; color: #94a3b8;">
+                                در حال بارگذاری لیست سفارشها...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pane 2: Flower Freshness Batches Table -->
+    <div id="paneInventory" class="admin-tab-pane" style="display: none;">
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>کد بچ گل</th>
+                            <th>نوع گل و گونه</th>
+                            <th>شاخههای موجود / اولیه</th>
+                            <th>بهای خرید هر شاخه</th>
+                            <th>ماندگاری مجاز</th>
+                            <th>وضعیت تازگی</th>
+                        </tr>
+                    </thead>
+                    <tbody id="batchesTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 2rem; color: #94a3b8;">
+                                در حال بارگذاری اطلاعات انبار سردخانه...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Order Details Modal -->
+<div class="admin-modal-overlay" id="orderDetailModal">
+    <div class="admin-modal-card">
+        <div class="modal-header-row">
+            <div>
+                <span style="font-size: 0.85rem; color: #64748b;">جزئیات سفارش:</span>
+                <h3 id="modalTrackingCode" style="font-size: 1.3rem; color: var(--brand); display: inline-block; margin-right: 0.5rem; direction: ltr;"></h3>
+            </div>
+            <button class="btn-ghost" onclick="closeOrderModal()">بستن ✕</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; font-size: 0.88rem; margin-bottom: 1.25rem;">
+            <div style="background: #f8fafc; padding: 0.85rem; border-radius: 8px;">
+                <div style="font-weight: 700; color: #334155; margin-bottom: 0.35rem;">اطلاعات گیرنده و مقصد:</div>
+                <div id="modalRecipientInfo"></div>
+            </div>
+            <div style="background: #f8fafc; padding: 0.85rem; border-radius: 8px;">
+                <div style="font-weight: 700; color: #334155; margin-bottom: 0.35rem;">سفارشدهنده:</div>
+                <div id="modalBuyerInfo"></div>
+                <div style="margin-top: 0.5rem; font-weight: 700; color: #334155;">بازه تحویل:</div>
+                <div id="modalDeliverySlot" style="color: #0369a1; font-weight: 600;"></div>
+            </div>
+        </div>
+
+        <div style="background: #fffcf7; border: 1px dashed #cbd5e1; padding: 1rem; border-radius: 8px; margin-bottom: 1.25rem;">
+            <div style="font-weight: 700; color: #854d0e; margin-bottom: 0.35rem;">متن یادداشت کارت پستال:</div>
+            <div id="modalCardMessage" style="font-style: italic; color: #1e3a2b;"></div>
+            <div id="modalRibbon" style="font-size: 0.82rem; color: #64748b; margin-top: 0.5rem;"></div>
+        </div>
+
+        <div>
+            <div style="font-weight: 700; margin-bottom: 0.5rem;">آیتمهای فاکتور:</div>
+            <ul id="modalItemsList" style="padding-right: 1.25rem; font-size: 0.88rem; color: #334155;"></ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/admin.js"></script>
+{% endblock %}
