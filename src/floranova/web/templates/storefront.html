@@ -11,8 +11,8 @@
         <a href="/" class="brand-wrap">
             <span class="brand-icon">🌸</span>
             <div>
-                <div class="brand-name">{{ settings.APP_NAME }}</div>
-                <div class="brand-tag">بوتیک گل و آتلیه دیزاین گیاهی</div>
+                <div class="brand-name">گلِفِلـولی•</div>
+                <div class="brand-tag">floli.flowers | برایِ لحظههایِ ماندگار</div>
             </div>
         </a>
 
@@ -31,16 +31,16 @@
 <!-- Hero Section -->
 <section class="hero-banner">
     <div class="hero-content">
-        <div class="hero-badge">هنر گلآرایی ژورنالی و ارسال VIP در تهران</div>
-        <h1 class="hero-title">لحظات به یادماندنی با رایحه گلهای تازه</h1>
+        <div class="hero-badge">فِلـولی | برایِ لحـظههایِ ماندگار • Online & In Store</div>
+        <h1 class="hero-title">گلِفِلـولی•؛ هنر گلآرایی مدرن و ارسال تشریفاتی</h1>
         <p class="hero-subtitle">
-            سفارش آنلاین انواع دستهگل، باکسهای لاکچری و سبدهای تشریفاتی با امکان انتخاب زمان دقیق ارسال و پیام کارت اختصاصی
+            طراحی اختصاصی انواع باکسگل، جارگل، سبد، بوکت و چیدمانهای ترند با ارسال فوری در تهران و کرج
         </p>
         <div class="hero-features">
-            <div>🌿 تضمین تازگی و شادابی گلها</div>
-            <div>🎁 تحویل سورپرایز با سفیر اختصاصی</div>
-            <div>✍️ نگارش خطی کارت پستال نفیس</div>
-            <div>🕒 زمانبندی دقیق در بازههای مشخص</div>
+            <div>🌸 گل و عروسک و جارگل ترند</div>
+            <div>🚚 ارسال فوری در تهران و کرج</div>
+            <div>📞 سفارش و هماهنگی: ۰۹۳۰۴۲۴۲۱۸۰</div>
+            <div>🕒 رزرو اسلات زمانی دقیق ارسال</div>
         </div>
     </div>
 </section>
@@ -183,14 +183,23 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">آدرس کامل محل تحویل در تهران:</label>
-                        <textarea id="recipientAddress" class="form-textarea" rows="2" required placeholder="خیابان، کوچه، پلاک، واحد"></textarea>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label">شهر مقصد:</label>
+                            <select id="recipientCity" class="form-select">
+                                <option value="تهران">تهران (ارسال اکسپرس)</option>
+                                <option value="کرج">کرج (ارسال تشریفاتی)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">منطقه / محله:</label>
+                            <input type="text" id="districtZone" class="form-input" placeholder="مثلاً: عظیمیه کرج / سعادتآباد تهران" />
+                        </div>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">منطقه شهرداری / محله:</label>
-                        <input type="text" id="districtZone" class="form-input" placeholder="مثلاً: منطقه ۱ (الهیه)" />
+                        <label class="form-label">آدرس کامل محل تحویل:</label>
+                        <textarea id="recipientAddress" class="form-textarea" rows="2" required placeholder="خیابان، کوچه، پلاک، واحد"></textarea>
                     </div>
 
                     <!-- Surprise Gift Checkbox -->
@@ -254,14 +263,15 @@
 <footer class="store-footer">
     <div class="footer-container">
         <div>
-            <h3 style="color: var(--primary); margin-bottom: 0.5rem; font-size: 1.1rem;">بوتیک گل {{ settings.APP_NAME }}</h3>
-            <p>{{ settings.STORE_ADDRESS_FA }}</p>
-            <p>تلفن هماهنگی و پشتیبانی کارگاه: {{ settings.STORE_PHONE }}</p>
+            <h3 style="color: var(--primary); margin-bottom: 0.5rem; font-size: 1.1rem;">گلِفِلـولی• | Floli Flowers</h3>
+            <p>{{ settings.STORE_SLOGAN_FA }}</p>
+            <p>سفارشات و مشاوره گلآرایی: {{ settings.STORE_PHONE_FA }}</p>
+            <p>ارسال تشریفاتی در سراسر تهران و کرج (Online & In Store)</p>
         </div>
         <div>
-            <h4 style="color: var(--primary); margin-bottom: 0.5rem;">ساعت کاری آتلیه دیزاین</h4>
-            <p>همهروزه از ۸:۰۰ صبح الی ۲۱:۰۰ شب</p>
-            <p>پشتیبانی اینستاگرام: {{ settings.INSTAGRAM_HANDLE }}</p>
+            <h4 style="color: var(--primary); margin-bottom: 0.5rem;">صفحه رسمی اینستاگرام</h4>
+            <p><a href="{{ settings.INSTAGRAM_URL }}" target="_blank" style="color: var(--primary); font-weight: bold; text-decoration: underline;">@{{ settings.INSTAGRAM_HANDLE }}</a></p>
+            <p>ساعت کاری استودیو دیزاین: ۸:۰۰ صبح الی ۲۱:۳۰ شب</p>
         </div>
     </div>
 </footer>
